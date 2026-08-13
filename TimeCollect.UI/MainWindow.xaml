@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TimeCollect.UI"
         mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
         Title="BPG TimeCollect" Height="550" Width="600">
     <!-- The TabControl acts as your upper navigation bar -->
     <TabControl Background="#F8F9FA">
@@ -44,9 +46,8 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- Reduced RowDefinitions from 8 to 6 -->
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -70,14 +71,12 @@
                     <Label Grid.Row="4" Grid.Column="0" Content="Sheet Names:" Margin="0,0,10,10"/>
                     <TextBox x:Name="txtSheetNames" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10"/>
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="Start Year:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtStartYear" Grid.Row="5" Grid.Column="1" Margin="0,0,0,10"/>
-
-                    <Label Grid.Row="6" Grid.Column="0" Content="Start Month:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtStartMonth" Grid.Row="6" Grid.Column="1" Margin="0,0,0,10"/>
-
-                    <Label Grid.Row="7" Grid.Column="0" Content="Start Day:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtStartDay" Grid.Row="7" Grid.Column="1" Margin="0,0,0,10"/>
+                    <!-- New DatePicker Component -->
+                    <!-- New DatePicker Component with Event Binding -->
+                    <Label Grid.Row="5" Grid.Column="0" Content="Start Date:" Margin="0,0,10,10"/>
+                    <DatePicker x:Name="dpStartDate" Grid.Row="5" Grid.Column="1" Margin="0,0,0,10" 
+                                SelectedDateFormat="Short" 
+                                SelectedDateChanged="DpStartDate_SelectedDateChanged" />
                 </Grid>
             </ScrollViewer>
         </TabItem>

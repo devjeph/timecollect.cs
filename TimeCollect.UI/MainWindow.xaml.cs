@@ -28,9 +28,17 @@ namespace TimeCollect.UI
             txtEmployeesSpreadsheet.Text = Env.GetString("EMPLOYEES_SPREADSHEET", "1yKLHsWWOffCVWTI4d6A4n8exNF-ioP2CHn7E7RomT4k");
             txtSheetNames.Text = Env.GetString("SHEET_NAMES", "202608,202609");
 
-            txtStartYear.Text = Env.GetString("TIMESHEET_START_YEAR", "2025");
-            txtStartMonth.Text = Env.GetString("TIMESHEET_START_MONTH", "12");
-            txtStartDay.Text = Env.GetString("TIMESHEET_START_DAY", "28");
+            // Extract the single date string and attempt to parse it into the DatePicker
+            string envStartDate = Env.GetString("TIMESHEET_START_DATE", "2025-12-28");
+            if (DateTime.TryParse(envStartDate, out DateTime parsedDate))
+            {
+                dpStartDate.SelectedDate = parsedDate;
+            }
+            else
+            {
+                // Fallback to current date if .env mapping fails
+                dpStartDate.SelectedDate = DateTime.Today;
+            }
         }
 
         /// <summary>
@@ -53,6 +61,16 @@ namespace TimeCollect.UI
         {
             try
             {
+                // Safely extract the selected date from the DatePicker, defaulting to today if null
+                DateTime startDate = dpStartDate.SelectedDate ?? DateTime.Today;
+
+                // Execution Guard Clause
+                if (startDate.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    MessageBox.Show("Execution blocked: Start date is not a Sunday.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
                 btnRun.IsEnabled = false;
                 txtLog.Clear();
 
@@ -62,9 +80,11 @@ namespace TimeCollect.UI
                 string employeesSheet = txtEmployeesSpreadsheet.Text;
                 string rawSheetNames = txtSheetNames.Text;
 
-                int startYear = int.Parse(txtStartYear.Text);
-                int startMonth = int.Parse(txtStartMonth.Text);
-                int startDay = int.Parse(txtStartDay.Text);
+                // Safely extract the selected date from the DatePicker, defaulting to today if null
+                //DateTime startDate = dpStartDate.SelectedDate ?? DateTime.Today;
+                int startYear = startDate.Year;
+                int startMonth = startDate.Month;
+                int startDay = startDate.Day;
 
                 await Task.Run(() =>
                 {
@@ -151,5 +171,30 @@ namespace TimeCollect.UI
                 btnRun.IsEnabled = true;
             }
         }
+
+        /// <summary>
+        /// Validates that the selected date is a Sunday. If not, auto-corrects to the previous Sunday.
+        /// </summary>
+        private void DpStartDate_SelectedDateChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (dpStartDate.SelectedDate.HasValue)
+            {
+                DateTime selectedDate = dpStartDate.SelectedDate.Value;
+
+                if (selectedDate.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    MessageBox.Show(
+                        "The Timesheet start date must be a Sunday. The system will automatically adjust your selection to the preceding Sunday.",
+                        "Parameter Constraint",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+
+                    // Calculate the offset to the previous Sunday and apply the correction
+                    int daysToSubtract = (int)selectedDate.DayOfWeek;
+                    dpStartDate.SelectedDate = selectedDate.AddDays(-daysToSubtract);
+                }
+            }
+        }
+
     }
 }
