@@ -26,7 +26,7 @@ namespace TimeCollect.Core.Services
 
             IXLWorksheet ws = wb.Worksheets.Add(sheetName);
 
-            // Map UTF-8 Japanese headers exactly as specified in the source logic
+            // Map UTF-8 Japanese headers exactly as specified in the source logic[cite: 1]
             var header = new List<string> { "対応", "行番号", "年", "月", "日", "WeekType", "名前", "工号", "種別", "直接/間接", "原寸/3D/管理", "時間" };
 
             // Write headers (ClosedXML utilizes 1-based indexing for rows and columns)

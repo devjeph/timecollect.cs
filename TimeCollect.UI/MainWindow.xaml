@@ -5,8 +5,72 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TimeCollect.UI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="BPG TimeCollect" Height="450" Width="500">
+    <!-- The TabControl acts as your upper navigation bar -->
+    <TabControl Background="#F8F9FA">
 
-    </Grid>
+        <!-- TAB 1: Primary Execution Workspace -->
+        <TabItem Header="Run">
+            <Grid>
+                <!-- Centered primary action button -->
+                <Button x:Name="btnRun" Content="Run TimeCollect" 
+                        Height="50" Width="200" 
+                        Click="BtnRun_Click" 
+                        FontWeight="Bold" FontSize="14"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </TabItem>
+
+        <!-- TAB 2: Parametric Settings -->
+        <TabItem Header="Settings">
+            <!-- ScrollViewer ensures parameters remain accessible if the window is resized -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Directory mapping -->
+                    <Label Grid.Row="0" Grid.Column="0" Content="Output Directory 2026:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtOutputDirectory" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <!-- Google Sheets API target identifiers -->
+                    <Label Grid.Row="1" Grid.Column="0" Content="Project Spreadsheet:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtProjectSpreadsheet" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <Label Grid.Row="2" Grid.Column="0" Content="Project Range:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtProjectRange" Grid.Row="2" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <Label Grid.Row="3" Grid.Column="0" Content="Employees Spreadsheet:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtEmployeesSpreadsheet" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <Label Grid.Row="4" Grid.Column="0" Content="Sheet Names:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtSheetNames" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <!-- Timesheet date boundaries -->
+                    <Label Grid.Row="5" Grid.Column="0" Content="Start Year:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtStartYear" Grid.Row="5" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <Label Grid.Row="6" Grid.Column="0" Content="Start Month:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtStartMonth" Grid.Row="6" Grid.Column="1" Margin="0,0,0,10"/>
+
+                    <Label Grid.Row="7" Grid.Column="0" Content="Start Day:" Margin="0,0,10,10"/>
+                    <TextBox x:Name="txtStartDay" Grid.Row="7" Grid.Column="1" Margin="0,0,0,10"/>
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+
+    </TabControl>
 </Window>

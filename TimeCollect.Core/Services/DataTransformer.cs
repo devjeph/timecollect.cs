@@ -7,7 +7,7 @@ using TimeCollect.Core.Helpers;
 namespace TimeCollect.Core.Services
 {
     /// <summary>
-    /// Service responsible for cleaning, padding, and transforming raw 2D string arrays from Google Sheets.
+    /// Service responsible for cleaning, padding, and transforming raw 2D string arrays.
     /// </summary>
     public class DataTransformer
     {

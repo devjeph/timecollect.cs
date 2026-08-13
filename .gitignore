@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 *.env
+google_credentials/
+**/google_credentials/
+**/.env
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
