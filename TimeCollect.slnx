@@ -1,2 +1,4 @@
 <Solution>
+  <Project Path="TimeCollect.Core/TimeCollect.Core.csproj" />
+  <Project Path="TimeCollect.UI/TimeCollect.UI.csproj" />
 </Solution>
