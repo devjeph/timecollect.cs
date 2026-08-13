@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using DotNetEnv;
 using Google.Apis.Sheets.v4;
@@ -9,27 +10,18 @@ using TimeCollect.Core.Services;
 
 namespace TimeCollect.UI
 {
-    /// <summary>
-    /// Code-behind logic for the MainWindow UI. Handles startup configuration mapping and event routing.
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
             LoadEnvironmentVariables();
+            Log("System initialized. Ready for execution.");
         }
 
-        /// <summary>
-        /// Parses the physical .env file in the execution directory and maps key-value pairs 
-        /// to the corresponding UI TextBoxes on the Settings tab.
-        /// </summary>
         private void LoadEnvironmentVariables()
         {
-            // Initializes the DotNetEnv parser to read the local .env file[cite: 1]
             Env.Load(".env");
-
-            // Extract values using explicit keys, providing sensible fallbacks if the file is missing variables[cite: 1]
             txtOutputDirectory.Text = Env.GetString("OUTPUT_DIRECTORY_2026", @"D:\Documents\TimeCollect\2026");
             txtProjectSpreadsheet.Text = Env.GetString("PROJECT_SPREADSHEET", "1yKLHsWWOffCVWTI4d6A4n8exNF-ioP2CHn7E7RomT4k");
             txtProjectRange.Text = Env.GetString("PROJECT_RANGE", "project_info!A:C");
@@ -42,63 +34,121 @@ namespace TimeCollect.UI
         }
 
         /// <summary>
-        /// Captures the current string state of the Settings text boxes and initiates the Core logic pipeline.
+        /// Thread-safe logging mechanism. Forces UI thread to update the TextBox
+        /// and automatically scrolls to the newest entry.
         /// </summary>
-        private void BtnRun_Click(object sender, RoutedEventArgs e)
+        private void Log(string message)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                txtLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
+                txtLog.ScrollToEnd();
+            });
+        }
+
+        /// <summary>
+        /// Uses async/await to push the heavy lifting to a background thread, keeping the UI responsive.
+        /// </summary>
+        private async void BtnRun_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // UI State Lock: Disable the button to prevent double-execution while network calls process
                 btnRun.IsEnabled = false;
-                btnRun.Content = "Authenticating...";
+                txtLog.Clear();
 
-                // Extract all parametric variables from the Settings UI fields
                 string outputDir = txtOutputDirectory.Text;
                 string projectSheet = txtProjectSpreadsheet.Text;
                 string projectRange = txtProjectRange.Text;
                 string employeesSheet = txtEmployeesSpreadsheet.Text;
+                string rawSheetNames = txtSheetNames.Text;
 
                 int startYear = int.Parse(txtStartYear.Text);
                 int startMonth = int.Parse(txtStartMonth.Text);
                 int startDay = int.Parse(txtStartDay.Text);
 
-                // Step 1: Authentication Pipeline
-                // Triggers browser popup if AppData token is missing/expired, otherwise silently authenticates
-                SheetsService sheetsService = GoogleAuthService.Authenticate();
+                await Task.Run(() =>
+                {
+                    // 1. Authenticate & Setup
+                    SheetsService creds = GoogleAuthService.Authenticate();
+                    if (creds != null) Log("🌐 Connected to Google API.");
 
-                btnRun.Content = "Extracting Data...";
+                    var datasets = WeekTypeHelper.SetTypes(startYear, startMonth, startDay);
 
-                // Step 2: Data Extraction & Sanitization
-                // Pulls raw data and immediately forces blank cells to "0.00" via the service logic
-                List<List<string>> rawProjectData = GoogleSheetsService.GetData(sheetsService, projectSheet, projectRange);
+                    // 2. Fetch Projects
+                    List<List<string>> rawProjectData = GoogleSheetsService.GetData(creds, projectSheet, projectRange);
+                    List<Project> projectData = DataParser.ParseProjects(rawProjectData);
+                    Log("📝 Timesheet collection started...");
 
-                // Example of generating the calendar mapping boundaries
-                var dataset = WeekTypeHelper.SetTypes(startYear, startMonth, startDay);
+                    // Safe parsing of sheet names
+                    string[] sheetNames = rawSheetNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                btnRun.Content = "Transforming...";
+                    // 3. The Main Sheet Loop
+                    foreach (string rawSheetName in sheetNames)
+                    {
+                        string sheetName = rawSheetName.Trim();
+                        if (string.IsNullOrEmpty(sheetName)) continue;
 
-                // Step 3: Transformation Pipeline
-                // (Note: To complete the loop, instantiate Employee and Project lists based on rawProjectData here)
-                // List<Project> projects = ... 
-                // Employee currentEmployee = ...
-                // List<List<string>> formattedData = DataTransformer.TransformData(rawEmployeeData, currentEmployee, projects, dataset);
+                        Log($"\nCollecting timesheet [{sheetName}] data");
 
-                btnRun.Content = "Exporting to Excel...";
+                        // A. Fetch Employees dynamically for this specific sheet tab
+                        List<List<string>> rawEmployeeData = GoogleSheetsService.GetData(creds, employeesSheet, $"{sheetName}!A:E");
 
-                // Step 4: Physical File Export
-                // ExcelExporter.Export(formattedData, "202608", outputDir);
+                        if (rawEmployeeData == null || rawEmployeeData.Count == 0)
+                        {
+                            Log("❌ ERROR: No employee data collected.");
+                            continue;
+                        }
 
-                MessageBox.Show("TimeCollect execution completed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                        List<Employee> employees = DataParser.ParseEmployees(rawEmployeeData, skipHeader: false);
+
+                        // B. Initialize the master list for the final Excel output
+                        List<List<string>> excelSheet = new List<List<string>>();
+
+                        // C. The Employee Timesheet Loop
+                        foreach (Employee employee in employees)
+                        {
+                            try
+                            {
+                                // Fetch timesheet from A7:BU39
+                                List<List<string>> data = GoogleSheetsService.GetData(creds, employee.SpreadsheetId, $"{sheetName}!A7:BU39");
+
+                                if (data == null || data.Count == 0)
+                                {
+                                    throw new Exception("No data returned from API.");
+                                }
+
+                                // Transform and append to master list
+                                List<List<string>> transformedData = DataTransformer.TransformData(data, employee, projectData, datasets);
+                                excelSheet.AddRange(transformedData);
+
+                                // Perfect Terminal Alignment
+                                int padLength = Math.Max(0, 15 - (employee.Nickname?.Length ?? 0));
+                                string padding = new string('*', padLength);
+                                Log($"[{sheetName}]-[ {padding} {employee.Nickname} ] ✅ OK.");
+                            }
+                            catch (Exception ex)
+                            {
+                                int padLength = Math.Max(0, 15 - (employee.Nickname?.Length ?? 0));
+                                string padding = new string('*', padLength);
+                                Log($"[{sheetName}]-[ {padding} {employee.Nickname} ] ❌ ERROR: {ex.Message}");
+                            }
+                        }
+
+                        // D. Export the massive combined list once per sheet
+                        Log($"Exporting {sheetName} to Excel...");
+                        ExcelExporter.Export(excelSheet, sheetName, outputDir);
+                    }
+                });
+
+                Log("\nData pipeline execution completed successfully.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Log($"ERROR: {ex.Message}");
             }
             finally
             {
-                // UI State Reset: Re-enable the button regardless of success or failure
                 btnRun.IsEnabled = true;
-                btnRun.Content = "Run TimeCollect";
             }
         }
     }

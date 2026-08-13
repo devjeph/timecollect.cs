@@ -5,25 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TimeCollect.UI"
         mc:Ignorable="d"
-        Title="BPG TimeCollect" Height="450" Width="500">
+        Title="BPG TimeCollect" Height="550" Width="600">
     <!-- The TabControl acts as your upper navigation bar -->
     <TabControl Background="#F8F9FA">
 
         <!-- TAB 1: Primary Execution Workspace -->
-        <TabItem Header="Run">
-            <Grid>
-                <!-- Centered primary action button -->
-                <Button x:Name="btnRun" Content="Run TimeCollect" 
-                        Height="50" Width="200" 
+        <TabItem Header="Execution">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button x:Name="btnRun" Grid.Row="0" Content="Run TimeCollect" 
+                        Height="40" Width="200" Margin="0,0,0,20"
                         Click="BtnRun_Click" 
                         FontWeight="Bold" FontSize="14"
-                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        HorizontalAlignment="Center"/>
+
+                <!-- The Live Log Console -->
+                <TextBox x:Name="txtLog" Grid.Row="1" 
+                         IsReadOnly="True" 
+                         TextWrapping="Wrap" 
+                         VerticalScrollBarVisibility="Auto" 
+                         Background="#1E1E1E" Foreground="#D4D4D4" 
+                         FontFamily="Consolas" FontSize="12" 
+                         Padding="10"
+                         BorderThickness="0"/>
             </Grid>
         </TabItem>
 
         <!-- TAB 2: Parametric Settings -->
         <TabItem Header="Settings">
-            <!-- ScrollViewer ensures parameters remain accessible if the window is resized -->
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid Margin="20">
                     <Grid.ColumnDefinitions>
@@ -42,11 +55,9 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Directory mapping -->
                     <Label Grid.Row="0" Grid.Column="0" Content="Output Directory 2026:" Margin="0,0,10,10"/>
                     <TextBox x:Name="txtOutputDirectory" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"/>
 
-                    <!-- Google Sheets API target identifiers -->
                     <Label Grid.Row="1" Grid.Column="0" Content="Project Spreadsheet:" Margin="0,0,10,10"/>
                     <TextBox x:Name="txtProjectSpreadsheet" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"/>
 
@@ -59,7 +70,6 @@
                     <Label Grid.Row="4" Grid.Column="0" Content="Sheet Names:" Margin="0,0,10,10"/>
                     <TextBox x:Name="txtSheetNames" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10"/>
 
-                    <!-- Timesheet date boundaries -->
                     <Label Grid.Row="5" Grid.Column="0" Content="Start Year:" Margin="0,0,10,10"/>
                     <TextBox x:Name="txtStartYear" Grid.Row="5" Grid.Column="1" Margin="0,0,0,10"/>
 

@@ -30,10 +30,10 @@ namespace TimeCollect.Core.Services
                 // Step 3: Copy overarching headers from row 1 down to row 2 for normalization
                 for (int i = 0; i < 9; i++) data[1][i] = data[0][i];
 
-                // Step 4: Generate a padded array of blank strings representing work states
-                List<string> workData = Enumerable.Repeat(" ", 3).ToList();
-                workData.AddRange(Enumerable.Repeat(" ", 9));
-                workData.AddRange(Enumerable.Repeat(" ", 40));
+                // Step 4: Define work types (Direct/Indirect allocations)
+                List<string> workData = Enumerable.Repeat("日付", 3).ToList();
+                workData.AddRange(Enumerable.Repeat("間接", 9));
+                workData.AddRange(Enumerable.Repeat("直接", 40));
 
                 // Step 5: Propagate project codes across wide column spans
                 for (int i = 0; i < 3; i++)
