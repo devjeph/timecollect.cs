@@ -95,7 +95,7 @@ namespace TimeCollect.UI
                     var datasets = WeekTypeHelper.SetTypes(startYear, startMonth, startDay);
 
                     // 2. Fetch Projects
-                    List<List<string>> rawProjectData = GoogleSheetsService.GetData(creds, projectSheet, projectRange);
+                    List<List<string>> rawProjectData = GoogleSheetsService.GetData(creds!, projectSheet, projectRange);
                     List<Project> projectData = DataParser.ParseProjects(rawProjectData);
                     Log("📝 Timesheet collection started...");
 
@@ -111,7 +111,7 @@ namespace TimeCollect.UI
                         Log($"\nCollecting timesheet [{sheetName}] data");
 
                         // A. Fetch Employees dynamically for this specific sheet tab
-                        List<List<string>> rawEmployeeData = GoogleSheetsService.GetData(creds, employeesSheet, $"{sheetName}!A:E");
+                        List<List<string>> rawEmployeeData = GoogleSheetsService.GetData(creds!, employeesSheet, $"{sheetName}!A:E");
 
                         if (rawEmployeeData == null || rawEmployeeData.Count == 0)
                         {
@@ -130,11 +130,44 @@ namespace TimeCollect.UI
                             try
                             {
                                 // Fetch timesheet from A7:BU39
-                                List<List<string>> data = GoogleSheetsService.GetData(creds, employee.SpreadsheetId, $"{sheetName}!A7:BU39");
+                                List<List<string>> data = GoogleSheetsService.GetData(creds!, employee.SpreadsheetId, $"{sheetName}!A7:BU39");
 
                                 if (data == null || data.Count == 0)
                                 {
                                     throw new Exception("No data returned from API.");
+                                }
+
+                                // --- NEW: Weekday < 8 Hours Check (Column M validation) ---
+                                // Note: In a 0-indexed C# list, Column M is index 12 (A=0, B=1 ... M=12).
+                                // We check each row corresponding to a weekday.
+                                for (int r = 0; r < data.Count; r++)
+                                {
+                                    var row = data[r];
+                                    // Ensure the row has enough columns to reach Column M (index 12) and date columns (Year=0, Month=1, Day=2)
+                                    if (row.Count > 12)
+                                    {
+                                        if (int.TryParse(row[0], out int yr) && int.TryParse(row[1], out int mo) && int.TryParse(row[2], out int dy))
+                                        {
+                                            // Construct date to check if it's a weekday (Mon-Fri)
+                                            try
+                                            {
+                                                DateTime entryDate = new DateTime(yr, mo, dy);
+                                                if (entryDate.DayOfWeek >= DayOfWeek.Monday && entryDate.DayOfWeek <= DayOfWeek.Friday)
+                                                {
+                                                    // Parse hours in Column M (index 12)
+                                                    if (double.TryParse(row[12], out double hoursColumnM))
+                                                    {
+                                                        if (hoursColumnM < 8.0)
+                                                        {
+                                                            // Log a warning directly to your UI terminal console
+                                                            Log($"⚠️ [Warning] {employee.Nickname} on {entryDate:yyyy-MM-dd} ({entryDate.DayOfWeek}): Column M has only {hoursColumnM} hours (< 8h).");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            catch { /* Invalid date row safety catch */ }
+                                        }
+                                    }
                                 }
 
                                 // Transform and append to master list

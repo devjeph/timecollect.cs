@@ -24,7 +24,7 @@ namespace TimeCollect.Core.Services
                 dataList[0].AddRange(new List<string> { "0.00", "0.00", "0.00", "0.00" });
 
                 // Step 2: Strip unused data columns based on strict indices defined in source logic
-                List<int> columnsToDelete = new List<int> { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 22, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72 };
+                List<int> columnsToDelete = new() { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 22, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72 };
                 List<List<string>> data = DeleteColumns(dataList, columnsToDelete);
 
                 // Step 3: Copy overarching headers from row 1 down to row 2 for normalization
@@ -67,7 +67,7 @@ namespace TimeCollect.Core.Services
                         string client = ProjectHelper.GetClient(projectCode, projectData);
 
                         // Construct the final row mapping
-                        transformedData.Add(new List<string>
+                        transformedData.Add(new()
                         {
                             client,
                             (row + 1).ToString(),
@@ -93,10 +93,10 @@ namespace TimeCollect.Core.Services
         /// </summary>
         private static List<List<string>> DeleteColumns(List<List<string>> data, List<int> columnIndices)
         {
-            List<List<string>> result = new List<List<string>>();
+            List<List<string>> result = new();
             foreach (var row in data)
             {
-                List<string> newRow = new List<string>();
+                List<string> newRow = new();
                 for (int i = 0; i < row.Count; i++)
                 {
                     // Append cell only if its index is not marked for deletion
