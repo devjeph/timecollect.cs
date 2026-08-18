@@ -1,85 +1,241 @@
 ﻿<Window x:Class="TimeCollect.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TimeCollect.UI"
-        mc:Ignorable="d"
+        Title="TimeCollect Dashboard" 
+        Height="450" Width="750"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanMinimize"
-        Title="BPG TimeCollect" Height="550" Width="600">
-    <!-- The TabControl acts as your upper navigation bar -->
-    <TabControl Background="#F8F9FA">
+        WindowStyle="None" 
+        AllowsTransparency="True" 
+        Background="Transparent"
+        ResizeMode="NoResize">
 
-        <!-- TAB 1: Primary Execution Workspace -->
-        <TabItem Header="Execution">
-            <Grid Margin="20">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+    <Window.Resources>
+        <!-- Custom Minimize Button Style -->
+        <Style x:Key="TitleBarMinimizeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
+                                <!-- Subtle highlight -->
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-                <Button x:Name="btnRun" Grid.Row="0" Content="Run TimeCollect" 
-                        Height="40" Width="200" Margin="0,0,0,20"
-                        Click="BtnRun_Click" 
-                        FontWeight="Bold" FontSize="14"
-                        HorizontalAlignment="Center"/>
+        <!-- Custom Close Button Style -->
+        <Style x:Key="TitleBarCloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="0,8,0,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E81123"/>
+                                <!-- Standard Windows Close Red -->
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-                <!-- The Live Log Console -->
-                <TextBox x:Name="txtLog" Grid.Row="1" 
-                         IsReadOnly="True" 
-                         TextWrapping="Wrap" 
-                         VerticalScrollBarVisibility="Auto" 
-                         Background="#1E1E1E" Foreground="#D4D4D4" 
-                         FontFamily="Consolas" FontSize="12" 
-                         Padding="10"
-                         BorderThickness="0"/>
+        <!-- Custom Modern TabItem Style -->
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <!-- Top rounded corners only to connect smoothly with the content panel -->
+                        <Border x:Name="TabBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6,6,0,0" 
+                                Margin="0,0,4,0">
+                            <ContentPresenter x:Name="ContentSite"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              ContentSource="Header"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Active Tab State -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <!-- Hover State (Inactive tabs) -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource BorderBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Main Application Wrapper -->
+    <Border Background="{DynamicResource WindowBackgroundBrush}" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <!-- Custom Title Bar Row -->
+                <RowDefinition Height="*"/>
+                <!-- Main Content Row -->
+            </Grid.RowDefinitions>
+
+            <!-- CUSTOM TITLE BAR -->
+            <!-- Background="Transparent" catches the mouse click for dragging -->
+            <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- App Title -->
+                <TextBlock Grid.Column="0" Text="BPG TimeCollect" FontSize="13" FontWeight="SemiBold" 
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+
+                <!-- Window Controls -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="btnMinimize" Content="—" Width="46" FontSize="14" FontWeight="Bold" 
+                            Style="{StaticResource TitleBarMinimizeButtonStyle}" Click="BtnMinimize_Click"/>
+
+                    <Button x:Name="btnClose" Content="✕" Width="46" FontSize="14" 
+                            Style="{StaticResource TitleBarCloseButtonStyle}" Click="BtnClose_Click"/>
+                </StackPanel>
             </Grid>
-        </TabItem>
 
-        <!-- TAB 2: Parametric Settings -->
-        <TabItem Header="Settings">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid Margin="20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+            <!-- MAIN CONTENT CONTAINER -->
+            <!-- Set BorderThickness to 0 so the active rounded tabs merge directly into the content box -->
+            <TabControl Grid.Row="1" Margin="16,0,16,16" Background="{DynamicResource CardBackgroundBrush}" BorderThickness="0">
 
-                    <!-- Reduced RowDefinitions from 8 to 6 -->
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <!-- TAB 1: Execution Workspace -->
+                <TabItem Header="Run">
+                    <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0,6,6,6">
+                        <Grid Margin="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="Output Directory 2026:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtOutputDirectory" Grid.Row="0" Grid.Column="1" Margin="0,0,0,10"/>
+                            <!-- Custom Styled Run Button -->
+                            <Button x:Name="btnRun" Grid.Row="0" Content="Run TimeCollect" 
+                                    Height="44" Width="220" Margin="0,0,0,16"
+                                    Click="BtnRun_Click" 
+                                    Background="{DynamicResource AccentBrush}" Foreground="White"
+                                    FontWeight="SemiBold" FontSize="14" Cursor="Hand" HorizontalAlignment="Center">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <!-- Hover State -->
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
+                                            </Trigger>
+                                            <!-- Disabled State -->
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter TargetName="border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="Project Spreadsheet:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtProjectSpreadsheet" Grid.Row="1" Grid.Column="1" Margin="0,0,0,10"/>
+                            <!-- Logging Console -->
+                            <RichTextBox x:Name="txtLog" Grid.Row="1" 
+                                     IsReadOnly="True" 
+                                     VerticalScrollBarVisibility="Auto" 
+                                     HorizontalScrollBarVisibility="Auto"
+                                     Background="{DynamicResource ConsoleBackgroundBrush}" 
+                                     Foreground="{DynamicResource ConsoleForegroundBrush}" 
+                                     FontFamily="Consolas" FontSize="12" 
+                                     Padding="12"
+                                     BorderBrush="{DynamicResource BorderBrush}"
+                                     BorderThickness="1"/>
+                        </Grid>
+                    </Border>
+                </TabItem>
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="Project Range:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtProjectRange" Grid.Row="2" Grid.Column="1" Margin="0,0,0,10"/>
+                <!-- TAB 2: Parametric Settings -->
+                <!-- x:Name added here to lock this tab during execution -->
+                <TabItem x:Name="tabSettings" Header="Settings">
+                    <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0,6,6,6">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="Employees Spreadsheet:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtEmployeesSpreadsheet" Grid.Row="3" Grid.Column="1" Margin="0,0,0,10"/>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Sheet Names:" Margin="0,0,10,10"/>
-                    <TextBox x:Name="txtSheetNames" Grid.Row="4" Grid.Column="1" Margin="0,0,0,10"/>
+                                <Label Grid.Row="0" Grid.Column="0" Content="Output Directory:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <TextBox x:Name="txtOutputDirectory" Grid.Row="0" Grid.Column="1" Margin="0,0,0,12" Padding="6"/>
 
-                    <!-- New DatePicker Component -->
-                    <!-- New DatePicker Component with Event Binding -->
-                    <Label Grid.Row="5" Grid.Column="0" Content="Start Date:" Margin="0,0,10,10"/>
-                    <DatePicker x:Name="dpStartDate" Grid.Row="5" Grid.Column="1" Margin="0,0,0,10" 
-                                SelectedDateFormat="Short" 
-                                SelectedDateChanged="DpStartDate_SelectedDateChanged" />
-                </Grid>
-            </ScrollViewer>
-        </TabItem>
+                                <Label Grid.Row="1" Grid.Column="0" Content="Project Spreadsheet:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <TextBox x:Name="txtProjectSpreadsheet" Grid.Row="1" Grid.Column="1" Margin="0,0,0,12" Padding="6"/>
 
-    </TabControl>
+                                <Label Grid.Row="2" Grid.Column="0" Content="Project Range:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <TextBox x:Name="txtProjectRange" Grid.Row="2" Grid.Column="1" Margin="0,0,0,12" Padding="6"/>
+
+                                <Label Grid.Row="3" Grid.Column="0" Content="Employees Spreadsheet:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <TextBox x:Name="txtEmployeesSpreadsheet" Grid.Row="3" Grid.Column="1" Margin="0,0,0,12" Padding="6"/>
+
+                                <Label Grid.Row="4" Grid.Column="0" Content="Sheet Names:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <TextBox x:Name="txtSheetNames" Grid.Row="4" Grid.Column="1" Margin="0,0,0,12" Padding="6"/>
+
+                                <Label Grid.Row="5" Grid.Column="0" Content="Start Date (Sun):" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <DatePicker x:Name="dpStartDate" Grid.Row="5" Grid.Column="1" Margin="0,0,0,12" 
+                                            SelectedDateFormat="Short" 
+                                            SelectedDateChanged="DpStartDate_SelectedDateChanged"/>
+
+                                <!-- Theme Selector Dropdown -->
+                                <Label Grid.Row="6" Grid.Column="0" Content="App Theme:" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,12"/>
+                                <ComboBox x:Name="cbTheme" Grid.Row="6" Grid.Column="1" Margin="0,0,0,12" Padding="6" 
+                                          SelectionChanged="CbTheme_SelectionChanged">
+                                    <ComboBoxItem Content="Light Theme"/>
+                                    <ComboBoxItem Content="Dark Theme"/>
+                                </ComboBox>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Border>
 </Window>

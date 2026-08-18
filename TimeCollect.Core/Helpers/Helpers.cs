@@ -42,7 +42,7 @@ namespace TimeCollect.Core.Helpers
         /// <param name="month"></param>
         /// <param name="day"></param>
         /// <returns></returns>
-        public static string GetName(List<WeekDataset> datasets, int year, int month, int day)
+        public static string? GetName(List<WeekDataset> datasets, int year, int month, int day)
         {
             DateTime targetDate = new DateTime(year, month, day);
             foreach (var data in datasets)
@@ -57,23 +57,18 @@ namespace TimeCollect.Core.Helpers
         }
 
         /// <summary>
-        /// Generates a 104-week span of calculated date boundaries starting from a given sunday.
+        /// Generates a 104-week span of calculated date boundaries starting from a given Sunday.
         /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="day"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
         public static List<WeekDataset> SetTypes(int year, int month, int day)
         {
             var datasets = new List<WeekDataset>();
             DateTime startDate = new DateTime(year, month, day);
 
-            // Enforce Sunday start requirement from original logic
+            // Enforce Sunday start requirement
             if (startDate.DayOfWeek != DayOfWeek.Sunday)
             {
-                throw new ArgumentException($"Date must be a Sunday. You inputted a {startDate.DayOfWeek}.");
-                return datasets;
+                Console.WriteLine($"Date must be a Sunday. Input was {startDate.DayOfWeek}.");
+                return datasets; // Returns immediately if not Sunday
             }
 
             // Iterate through a 104-week span (2 years)
@@ -82,11 +77,8 @@ namespace TimeCollect.Core.Helpers
                 DateTime sunday = startDate.AddDays(weekIndex * 7);
                 DateTime saturday = sunday.AddDays(6);
 
-                // Break condition: Stop if the year exceeds the specified year + 2
-                if (sunday.Year > year + 2)
-                {
-                    break;
-                }
+                // Break condition: Stop generating if the year exceeds start year + 2
+                if (sunday.Year >= year + 2) break;
 
                 string weekType = SetName(sunday, saturday);
 
@@ -99,9 +91,13 @@ namespace TimeCollect.Core.Helpers
                 });
             }
 
-            // Hardcoded override for the final element as specified.
-            if (datasets.Count > 0) datasets[datasets.Count - 1].WeekType = "12to1";
+            // Hardcoded override for the final element
+            if (datasets.Count > 0)
+            {
+                datasets[datasets.Count - 1].WeekType = "12to1";
+            }
 
+            // Ensure no stray code statements exist below this return
             return datasets;
         }
 

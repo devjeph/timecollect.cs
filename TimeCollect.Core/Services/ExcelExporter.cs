@@ -15,7 +15,7 @@ namespace TimeCollect.Core.Services
         public static void Export(List<List<string>> data, string sheetName, string outputDirectory)
         {
             // Construct absolute file path and ensure directory exists
-            string filePath = Path.Combine(outputDirectory, "TimeCollect.xlsx");
+            string filePath = Path.Combine(outputDirectory, "BPGTimeCollect.xlsx");
             Directory.CreateDirectory(outputDirectory);
 
             // Open existing workbook to append data, or create a new instance in memory

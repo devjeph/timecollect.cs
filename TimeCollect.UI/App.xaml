@@ -4,6 +4,18 @@
              xmlns:local="clr-namespace:TimeCollect.UI"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Default Light Theme Colors (Active on Startup) -->
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F3F4F6"/>
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#111827"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="ConsoleBackgroundBrush" Color="#0F172A"/>
+        <SolidColorBrush x:Key="ConsoleForegroundBrush" Color="#E2E8F0"/>
+        <!-- NEW: Disabled Button Brushes -->
+        <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#E5E7EB"/>
+        <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#9CA3AF"/>
     </Application.Resources>
 </Application>
